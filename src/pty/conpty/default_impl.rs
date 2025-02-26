@@ -13,7 +13,7 @@ impl PTYImpl for ConPTY {
     }
 
     fn spawn(
-        &self,
+        &mut self,
         _appname: OsString,
         _cmdline: Option<OsString>,
         _cwd: Option<OsString>,
