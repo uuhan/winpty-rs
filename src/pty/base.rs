@@ -418,18 +418,20 @@ impl PTYProcess {
                 // let mut alive = reader_alive_rx.recv_timeout(Duration::from_millis(300)).unwrap_or(true);
                 // alive = alive && !is_eof(process, conout).unwrap();
 
-                while reader_alive_rx
-                    .recv_timeout(Duration::from_millis(100))
-                    .unwrap_or(true)
-                {
+                let mut alive = reader_alive_rx
+                    .try_recv()
+                    .unwrap_or(true);
+                while alive {
                     if !is_eof(process.into(), conout.into()).unwrap() {
                         let result = read(4096, true, conout.into(), using_pipes);
                         reader_out_tx.send(Some(result)).unwrap();
+                        alive = reader_alive_rx
+                            .try_recv()
+                            .unwrap_or(true);
                     } else {
                         reader_out_tx.send(None).unwrap();
+                        alive = false;
                     }
-                    // alive = reader_alive_rx.recv_timeout(Duration::from_millis(300)).unwrap_or(true);
-                    // alive = alive && !is_eof(process, conout).unwrap();
                 }
             }
 
@@ -462,7 +464,7 @@ impl PTYProcess {
                                 Ok(Some(bytes)) => bytes,
                                 Err(_) => Ok(OsString::new()),
                             },
-                            false => match reader_out_rx.recv_timeout(Duration::from_millis(200)) {
+                            false => match reader_out_rx.try_recv() {
                                 Ok(None) => {
                                     eof_reached = true;
                                     Ok(OsString::new())
