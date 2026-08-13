@@ -13,6 +13,14 @@ use std::os::windows::raw;
 #[cfg(all(feature = "conpty", not(feature = "conpty_local")))]
 pub use windows::Win32::System::Console::{CreatePseudoConsole, ResizePseudoConsole, ClosePseudoConsole};
 
+/// 系统自带的 ConPTY 没有这个 API —— 它是独立 conpty.dll 的扩展，用来隐藏
+/// 伪控制台窗口。调用方只是「有就调一下」（返回值直接丢弃），所以这里给个
+/// 空实现，让系统 ConPTY 这条路能编译。
+#[cfg(all(feature = "conpty", not(feature = "conpty_local")))]
+pub unsafe fn ShowHidePseudoConsole(_hPC: HPCON, _show: bool) -> Result<()> {
+    Ok(())
+}
+
 #[cfg(all(feature = "conpty", feature = "conpty_local"))]
 use super::bindings::{
     ConptyClearPseudoConsole, ConptyClosePseudoConsole, ConptyCreatePseudoConsole,

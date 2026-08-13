@@ -10,7 +10,9 @@ mod calls;
 #[cfg(all(feature="conpty", feature="conpty_local"))]
 mod bindings;
 
-#[cfg(all(feature="conpty", feature="conpty_local"))]
+// NtCreateNamedPipeFile 的绑定，来自 ntdll，跟用哪个 ConPTY 后端无关。
+// 上游把它一并锁在 `conpty_local` 后面，于是系统 ConPTY 那条路引用不到。
+#[cfg(feature="conpty")]
 mod win_bindings;
 
 #[cfg(feature="conpty")]
